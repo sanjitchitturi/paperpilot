@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PaperPilot - AI Research Copilot</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">PaperPilot</div>
+        </div>
+    </nav>
+
+    <main class="hero">
+        <div class="container">
+            <h1>Transform Research Papers into Insights</h1>
+            <p class="subtitle">Upload any arXiv paper or PDF and get instant summaries, diagrams, limitations analysis, and future research directions powered by AI.</p>
+            
+            <div class="upload-section">
+                <div class="upload-box" id="uploadBox">
+                    <svg class="upload-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <h3>Drop your paper here</h3>
+                    <p>or click to browse</p>
+                    <input type="file" id="fileInput" accept=".pdf" hidden>
+                </div>
+                <button class="btn-primary" id="analyzeBtn" disabled>Analyze Paper</button>
+                <p class="file-name" id="fileName"></p>
+            </div>
+
+            <div class="features">
+                <div class="feature-card">
+                    <h3>Smart Summaries</h3>
+                    <p>Get concise overviews of complex research papers in seconds</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Visual Diagrams</h3>
+                    <p>Understand paper architecture and methodology through clear explanations</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Critical Analysis</h3>
+                    <p>Discover limitations and future research opportunities</p>
+                </div>
+                <div class="feature-card">
+                    <h3>Interactive Q&A</h3>
+                    <p>Ask questions and dive deeper into any aspect of the paper</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2026 PaperPilot.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

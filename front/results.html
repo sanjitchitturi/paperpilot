@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis - PaperPilot</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        .selection-view {
+            display: block;
+        }
+
+        .analysis-view {
+            display: none;
+        }
+
+        .chat-view {
+            display: none;
+        }
+
+        .option-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 48px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .option-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 28px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            position: relative;
+        }
+
+        .option-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
+        }
+
+        .option-card.special {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%);
+        }
+
+        .option-card.chat-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, rgba(5, 150, 105, 0.03) 100%);
+        }
+
+        .option-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--primary);
+            color: white;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .option-card.special .option-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .option-card.chat-card .option-tag {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .option-card h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .option-card p {
+            font-size: 14px;
+            color: var(--text-light);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .selection-header {
+            text-align: center;
+            margin-bottom: 24px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .selection-header h1 {
+            font-size: 32px;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .selection-header p {
+            font-size: 16px;
+            color: var(--text-light);
+        }
+
+        .analysis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .analysis-header h2 {
+            font-size: 24px;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .back-button {
+            padding: 10px 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .back-button:hover {
+            background: var(--background);
+            border-color: var(--text-light);
+        }
+
+        .streaming-content {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 32px;
+            min-height: 400px;
+            line-height: 1.8;
+        }
+
+        .streaming-content.loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .markdown-content {
+            color: var(--text);
+        }
+
+        .markdown-content h1,
+        .markdown-content h2,
+        .markdown-content h3,
+        .markdown-content h4 {
+            margin-top: 28px;
+            margin-bottom: 14px;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .markdown-content h1 {
+            font-size: 28px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+        }
+
+        .markdown-content h2 {
+            font-size: 24px;
+        }
+
+        .markdown-content h3 {
+            font-size: 20px;
+        }
+
+        .markdown-content p {
+            margin-bottom: 16px;
+        }
+
+        .markdown-content ul,
+        .markdown-content ol {
+            margin-bottom: 16px;
+            padding-left: 28px;
+        }
+
+        .markdown-content li {
+            margin-bottom: 8px;
+        }
+
+        .markdown-content code {
+            background: var(--background);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .markdown-content pre {
+            background: var(--background);
+            padding: 20px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 16px;
+            border: 1px solid var(--border);
+        }
+
+        .markdown-content pre code {
+            padding: 0;
+            background: none;
+        }
+
+        .markdown-content blockquote {
+            border-left: 3px solid var(--primary);
+            padding-left: 20px;
+            margin: 20px 0;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+        }
+
+        .markdown-content th,
+        .markdown-content td {
+            border: 1px solid var(--border);
+            padding: 12px;
+            text-align: left;
+        }
+
+        .markdown-content th {
+            background: var(--background);
+            font-weight: 600;
+        }
+
+        .markdown-content a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .markdown-content a:hover {
+            text-decoration: underline;
+        }
+
+        .chat-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .chat-messages-container {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 24px;
+            min-height: 500px;
+            max-height: 600px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .chat-message {
+            margin-bottom: 20px;
+            padding: 16px 20px;
+            border-radius: 8px;
+            max-width: 85%;
+        }
+
+        .chat-message.user {
+            background: var(--primary);
+            color: white;
+            margin-left: auto;
+            text-align: left;
+        }
+
+        .chat-message.assistant {
+            background: var(--background);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .chat-message.assistant .markdown-content h1,
+        .chat-message.assistant .markdown-content h2,
+        .chat-message.assistant .markdown-content h3 {
+            margin-top: 16px;
+        }
+
+        .chat-message.assistant .markdown-content h1:first-child,
+        .chat-message.assistant .markdown-content h2:first-child,
+        .chat-message.assistant .markdown-content h3:first-child {
+            margin-top: 0;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 15px;
+            font-family: inherit;
+            background: var(--background);
+        }
+
+        .chat-input-area input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .chat-send-btn {
+            padding: 12px 28px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .chat-send-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .chat-send-btn:disabled {
+            background: var(--secondary);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .empty-chat-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-chat-state h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text);
+        }
+
+        .empty-chat-state p {
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .option-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .analysis-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .chat-message {
+                max-width: 95%;
+            }
+
+            .chat-input-area {
+                flex-direction: column;
+            }
+
+            .chat-send-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">PaperPilot</div>
+            <a href="index.html" class="back-link">Back to Home</a>
+        </div>
+    </nav>
+
+    <main class="results-container">
+        <div class="container">
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Processing your paper...</p>
+            </div>
+
+            <!-- Selection View -->
+            <div class="selection-view" id="selectionView" style="display: none;">
+                <div class="selection-header">
+                    <h1 id="paperTitle">Choose Your Analysis</h1>
+                    <p>Select what you would like to generate from your research paper</p>
+                </div>
+
+                <div class="option-cards">
+                    <div class="option-card" data-option="summary">
+                        <span class="option-tag">Analysis</span>
+                        <h3>Comprehensive Summary</h3>
+                        <p>Get a detailed overview of the paper including objectives, methodology, findings, and contributions</p>
+                    </div>
+
+                    <div class="option-card" data-option="diagram">
+                        <span class="option-tag">Technical</span>
+                        <h3>Diagram & Architecture</h3>
+                        <p>Understand the key diagrams, system architecture, and methodology explained in detail</p>
+                    </div>
+
+                    <div class="option-card" data-option="limitations">
+                        <span class="option-tag">Critical</span>
+                        <h3>Limitations Analysis</h3>
+                        <p>Discover the main limitations, weaknesses, and potential issues with this research</p>
+                    </div>
+
+                    <div class="option-card" data-option="future">
+                        <span class="option-tag">Research</span>
+                        <h3>Future Research</h3>
+                        <p>Explore suggested future directions, improvements, and research opportunities</p>
+                    </div>
+
+                    <div class="option-card special" data-option="startup">
+                        <span class="option-tag">Innovation</span>
+                        <h3>Startup Idea Generator</h3>
+                        <p>Transform this research into a potential startup with market analysis and implementation strategy</p>
+                    </div>
+
+                    <div class="option-card chat-card" data-option="chat">
+                        <span class="option-tag">Interactive</span>
+                        <h3>Chat with Paper</h3>
+                        <p>Ask specific questions and have an interactive conversation about the research paper</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analysis View -->
+            <div class="analysis-view" id="analysisView">
+                <div class="analysis-header">
+                    <h2 id="analysisTitle">Summary</h2>
+                    <button class="back-button" id="backButton">Back to Options</button>
+                </div>
+
+                <div class="streaming-content markdown-content" id="streamingContent">
+                    <div class="loading" style="display: flex;">
+                        <div class="spinner"></div>
+                        <p>Generating your analysis...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat View -->
+            <div class="chat-view" id="chatView">
+                <div class="chat-container">
+                    <div class="analysis-header">
+                        <h2>Chat with Paper</h2>
+                        <button class="back-button" id="chatBackButton">Back to Options</button>
+                    </div>
+
+                    <div class="chat-messages-container" id="chatMessagesContainer">
+                        <div class="empty-chat-state">
+                            <h3>Start a Conversation</h3>
+                            <p>Ask any question about the research paper and get detailed answers</p>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-area">
+                        <input 
+                            type="text" 
+                            id="chatInput" 
+                            placeholder="Ask a question about this paper..."
+                            autocomplete="off"
+                        />
+                        <button class="chat-send-btn" id="chatSendBtn">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:5001';
+        let paperContext = null;
+
+        const optionConfig = {
+            'summary': {
+                title: 'Comprehensive Summary',
+                prompt: 'Provide a comprehensive summary of this paper including main objectives, methodology, key findings, and contributions.'
+            },
+            'diagram': {
+                title: 'Diagram & Architecture',
+                prompt: 'Explain the key diagrams, architecture, or methodology in this paper in detail.'
+            },
+            'limitations': {
+                title: 'Limitations Analysis',
+                prompt: 'What are the main limitations and weaknesses of this research? Provide a critical analysis.'
+            },
+            'future': {
+                title: 'Future Research Directions',
+                prompt: 'What future research directions or improvements does this paper suggest or what could be done next?'
+            },
+            'startup': {
+                title: 'Startup Idea Generator',
+                prompt: 'Based on this research, suggest a potential startup idea with market opportunity, target customers, and implementation strategy.'
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const paperData = JSON.parse(localStorage.getItem('paperData'));
+            
+            if (!paperData) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            paperContext = paperData.text;
+            
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('selectionView').style.display = 'block';
+                document.getElementById('paperTitle').textContent = paperData.filename || 'Choose Your Analysis';
+            }, 500);
+
+            // Option card click handlers
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const option = card.dataset.option;
+                    if (option === 'chat') {
+                        showChat();
+                    } else {
+                        showAnalysis(option);
+                    }
+                });
+            });
+
+            // Back button handlers
+            document.getElementById('backButton').addEventListener('click', () => {
+                document.getElementById('analysisView').style.display = 'none';
+                document.getElementById('selectionView').style.display = 'block';
+            });
+
+            document.getElementById('chatBackButton').addEventListener('click', () => {
+                document.getElementById('chatView').style.display = 'none';
+                document.getElementById('selectionView').style.display = 'block';
+            });
+
+            // Chat functionality
+            const chatInput = document.getElementById('chatInput');
+            const chatSendBtn = document.getElementById('chatSendBtn');
+
+            chatSendBtn.addEventListener('click', sendChatMessage);
+            chatInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !chatSendBtn.disabled) {
+                    sendChatMessage();
+                }
+            });
+        });
+
+        function showChat() {
+            document.getElementById('selectionView').style.display = 'none';
+            document.getElementById('chatView').style.display = 'block';
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('chatSendBtn');
+            const messagesContainer = document.getElementById('chatMessagesContainer');
+            
+            const question = input.value.trim();
+            if (!question) return;
+
+            // Remove empty state if present
+            const emptyState = messagesContainer.querySelector('.empty-chat-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            // Add user message
+            addChatMessage(question, 'user');
+            input.value = '';
+            sendBtn.disabled = true;
+
+            // Add temporary loading message
+            const loadingMsg = addChatMessage('Thinking...', 'assistant', true);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/ask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: question,
+                        context: paperContext
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Remove loading message
+                loadingMsg.remove();
+                
+                if (response.ok) {
+                    await streamChatMessage(data.answer);
+                } else {
+                    addChatMessage('Error: ' + data.error, 'assistant');
+                }
+            } catch (error) {
+                loadingMsg.remove();
+                addChatMessage('Error: ' + error.message, 'assistant');
+            }
+
+            sendBtn.disabled = false;
+            input.focus();
+        }
+
+        function addChatMessage(text, sender, isTemporary = false) {
+            const messagesContainer = document.getElementById('chatMessagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message ${sender}`;
+            
+            if (sender === 'assistant' && !isTemporary) {
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'markdown-content';
+                contentDiv.innerHTML = marked.parse(text);
+                messageDiv.appendChild(contentDiv);
+            } else {
+                messageDiv.textContent = text;
+            }
+            
+            if (isTemporary) {
+                messageDiv.classList.add('temporary');
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            return messageDiv;
+        }
+
+        async function streamChatMessage(text) {
+            const messagesContainer = document.getElementById('chatMessagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message assistant';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'markdown-content';
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+            
+            const words = text.split(' ');
+            let currentText = '';
+            
+            for (let i = 0; i < words.length; i++) {
+                currentText += words[i] + ' ';
+                contentDiv.innerHTML = marked.parse(currentText);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                await new Promise(resolve => setTimeout(resolve, 30));
+            }
+            
+            contentDiv.innerHTML = marked.parse(text);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function showAnalysis(option) {
+            const config = optionConfig[option];
+            
+            // Update UI
+            document.getElementById('selectionView').style.display = 'none';
+            document.getElementById('analysisView').style.display = 'block';
+            document.getElementById('analysisTitle').textContent = config.title;
+            
+            const contentDiv = document.getElementById('streamingContent');
+            contentDiv.innerHTML = '<div class="loading" style="display: flex;"><div class="spinner"></div><p>Generating your analysis...</p></div>';
+            contentDiv.classList.add('loading');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/ask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: config.prompt,
+                        context: paperContext
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    contentDiv.classList.remove('loading');
+                    await streamText(data.answer, contentDiv);
+                } else {
+                    contentDiv.innerHTML = '<p style="color: var(--error);">Error: ' + data.error + '</p>';
+                }
+            } catch (error) {
+                contentDiv.classList.remove('loading');
+                contentDiv.innerHTML = '<p style="color: var(--error);">Error: ' + error.message + '</p>';
+            }
+        }
+
+        async function streamText(text, container) {
+            container.innerHTML = '';
+            const words = text.split(' ');
+            let currentText = '';
+            
+            for (let i = 0; i < words.length; i++) {
+                currentText += words[i] + ' ';
+                container.innerHTML = marked.parse(currentText);
+                await new Promise(resolve => setTimeout(resolve, 30));
+            }
+            
+            container.innerHTML = marked.parse(text);
+        }
+    </script>
+</body>
+</html>
